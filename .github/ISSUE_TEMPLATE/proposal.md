@@ -2,9 +2,9 @@
 name: 工作提案
 about: 较为成型的一项工作提议（尚不成熟的想法先在 Discussion 板块发帖）
 title: ''
-labels: ''
+labels:
+  - s0-strawman
 assignees: ''
-
 ---
 
 ## 工作概要
