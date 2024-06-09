@@ -1,0 +1,36 @@
+name: 工作提案
+description: 较为成型的一项工作提议（尚不成熟的想法先在 Discussion 板块发帖）
+labels:
+  - s0-strawman
+body:
+  - type: input
+    attributes:
+      label: 实施周期
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: 工作/项目组
+  - type: input
+    attributes:
+      label: 相关个人
+      description: 示例：@GitHub_ID x N
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 涉及物资
+      value: |-
+        示例：
+        - [x] 现有物料、资金
+        - [ ] 待募集物料、资金
+  - type: textarea
+    attributes:
+      label: 方案详情
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: >-
+        This template was generated with
+        [Issue Forms Creator](https://issue-forms-creator.netlify.app)
