@@ -1,6 +1,8 @@
-# Kaiyuanshe - RFC
+# KaiYuanShe - RFC
 
 开源社工作提案、决议库
+
+[![Lark notification](https://github.com/kaiyuanshe/RFC/actions/workflows/Lark-notification.yml/badge.svg)][1]
 
 ## Quick start 快速入门
 
@@ -20,3 +22,5 @@
   - [存档](https://github.com/kaiyuanshe/RFC/pulls)
   - [撰写](https://github.com/kaiyuanshe/RFC/new/main)📝
 - [Contributor 贡献者](https://github.com/kaiyuanshe/RFC/graphs/contributors)
+
+[1]: https://github.com/kaiyuanshe/RFC/actions/workflows/Lark-notification.yml
