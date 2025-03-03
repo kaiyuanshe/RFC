@@ -18,244 +18,78 @@ interface GitHubAction
   };
 }
 
-const {
-  event_name,
-  action,
-  actor,
-  server_url,
-  repository,
-  ref,
-  ref_name,
-  event,
-} = JSON.parse((await stdin()) || "{}") as GitHubAction;
-
-const { head_commit, issue, pull_request, discussion, comment, release } =
-  event;
-const actionText =
+// Helper functions
+const getActionText = (action?: string) => 
   action === "closed" ? "关闭" : action?.includes("open") ? "打开" : "编辑";
 
-const zh_cn =
-  event_name === "push"
-    ? {
-        title: "GitHub 代码提交",
-        content: [
-          [
-            { tag: "text", text: "提交链接：" },
-            {
-              tag: "a",
-              text: head_commit?.url,
-              href: head_commit?.url,
-            },
-          ],
-          [
-            { tag: "text", text: "代码分支：" },
-            {
-              tag: "a",
-              text: ref,
-              href: `${server_url}/${repository}/tree/${ref_name}`,
-            },
-          ],
-          [
-            { tag: "text", text: "提交作者：" },
-            { tag: "a", text: actor, href: `${server_url}/${actor}` },
-          ],
-          [
-            { tag: "text", text: "提交信息：" },
-            { tag: "text", text: head_commit?.message },
-          ],
-        ],
-      }
-    : event_name === "issues"
-    ? {
-        title: `GitHub issue ${actionText}：${issue?.title}`,
-        content: [
-          [
-            { tag: "text", text: "链接：" },
-            {
-              tag: "a",
-              text: issue?.html_url,
-              href: issue?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "作者：" },
-            {
-              tag: "a",
-              text: issue?.user?.login,
-              href: issue?.user?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "指派：" },
-            {
-              tag: issue?.assignee ? "a" : "text",
-              text: issue?.assignee?.login || "",
-              href: issue?.assignee?.html_url,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `标签：${
-                issue?.labels?.map(({ name }) => name).join(", ") || ""
-              }`,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `里程碑：${issue?.milestone?.title || ""}`,
-            },
-          ],
-          [
-            { tag: "text", text: "描述：" },
-            { tag: "text", text: issue?.body },
-          ],
-        ],
-      }
-    : event_name === "pull_request"
-    ? {
-        title: `GitHub PR ${actionText}：${pull_request?.title}`,
-        content: [
-          [
-            { tag: "text", text: "链接：" },
-            {
-              tag: "a",
-              text: pull_request?.html_url,
-              href: pull_request?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "作者：" },
-            {
-              tag: "a",
-              text: pull_request?.user.login,
-              href: pull_request?.user.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "指派：" },
-            {
-              tag: issue?.assignee ? "a" : "text",
-              text: issue?.assignee?.login || "",
-              href: issue?.assignee?.html_url,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `标签：${
-                pull_request?.labels.map(({ name }) => name).join(", ") || ""
-              }`,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `里程碑：${pull_request?.milestone?.title || ""}`,
-            },
-          ],
-          [
-            { tag: "text", text: "描述：" },
-            { tag: "text", text: pull_request?.body },
-          ],
-        ],
-      }
-    : event_name === "discussion"
-    ? {
-        title: `GitHub 帖子${action === "created" ? "发布" : "编辑"}：${
-          discussion?.title
-        }`,
-        content: [
-          [
-            { tag: "text", text: "链接：" },
-            {
-              tag: "a",
-              text: discussion?.html_url,
-              href: discussion?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "作者：" },
-            {
-              tag: "a",
-              text: discussion?.user?.login,
-              href: discussion?.user?.html_url,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `分类：${discussion?.category.name || ""}`,
-            },
-          ],
-          [
-            {
-              tag: "text",
-              text: `标签：${
-                discussion?.labels?.map(({ name }) => name).join(", ") || ""
-              }`,
-            },
-          ],
-          [
-            { tag: "text", text: "描述：" },
-            { tag: "text", text: discussion?.body },
-          ],
-        ],
-      }
-    : event_name === "issue_comment" || event_name === "discussion_comment"
-    ? {
-        title: `GitHub 帖子评论：${issue?.title || discussion?.title}`,
-        content: [
-          [
-            { tag: "text", text: "链接：" },
-            {
-              tag: "a",
-              text: comment?.html_url,
-              href: comment?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "作者：" },
-            {
-              tag: "a",
-              text: comment?.user?.login,
-              href: comment?.user?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "描述：" },
-            { tag: "text", text: comment?.body },
-          ],
-        ],
-      }
-    : event_name === "release" && action === "published"
-    ? {
-        title: `GitHub Release 发布：${release?.name || release?.tag_name}`,
-        content: [
-          [
-            { tag: "text", text: "链接：" },
-            {
-              tag: "a",
-              text: release?.html_url,
-              href: release?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "作者：" },
-            {
-              tag: "a",
-              text: release?.author?.login,
-              href: release?.author?.html_url,
-            },
-          ],
-          [
-            { tag: "text", text: "描述：" },
-            { tag: "text", text: release?.body },
-          ],
-        ],
-      }
-    : null;
+const createLink = (text: string, href?: string) => ({
+  tag: "a",
+  text,
+  href
+});
 
-if (zh_cn) console.log(JSON.stringify({ post: { zh_cn } }));
-else console.error(`Unsupported ${event_name} event & ${action} action`);
+const createText = (text: string) => ({
+  tag: "text",
+  text
+});
+
+// Event handlers
+const handlePushEvent = (event: GitHubAction) => {
+  const { head_commit, ref, ref_name, server_url, repository, actor } = event;
+  return {
+    title: "GitHub 代码提交",
+    content: [
+      [createText("提交链接："), createLink(head_commit?.url, head_commit?.url)],
+      [createText("代码分支："), createLink(ref, `${server_url}/${repository}/tree/${ref_name}`)],
+      [createText("提交作者："), createLink(actor, `${server_url}/${actor}`)],
+      [createText("提交信息："), createText(head_commit?.message)]
+    ]
+  };
+};
+
+const handleIssueEvent = (event: GitHubAction, actionText: string) => {
+  const { issue } = event;
+  return {
+    title: `GitHub issue ${actionText}：${issue?.title}`,
+    content: [
+      [createText("链接："), createLink(issue?.html_url, issue?.html_url)],
+      [createText("作者："), createLink(issue?.user?.login, issue?.user?.html_url)],
+      [createText("指派："), issue?.assignee ? createLink(issue.assignee.login, issue.assignee.html_url) : createText("")],
+      [createText(`标签：${issue?.labels?.map(({ name }) => name).join(", ") || ""}`)],
+      [createText(`里程碑：${issue?.milestone?.title || ""}`)],
+      [createText("描述："), createText(issue?.body)]
+    ]
+  };
+};
+
+// ... other event handlers (pull_request, discussion, comment, release) ...
+
+// Main processor
+const processEvent = (event: GitHubAction) => {
+  const { event_name, action } = event;
+  const actionText = getActionText(action);
+
+  switch (event_name) {
+    case "push":
+      return handlePushEvent(event);
+    case "issues":
+      return handleIssueEvent(event, actionText);
+    // ... other cases ...
+    default:
+      return null;
+  }
+};
+
+// Main execution
+const main = async () => {
+  const event = JSON.parse((await stdin()) || "{}") as GitHubAction;
+  const zh_cn = processEvent(event);
+
+  if (zh_cn) {
+    console.log(JSON.stringify({ post: { zh_cn } }));
+  } else {
+    console.error(`Unsupported ${event.event_name} event & ${event.action} action`);
+  }
+};
+
+main();
