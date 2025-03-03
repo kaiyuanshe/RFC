@@ -19,48 +19,57 @@ interface GitHubAction
 }
 
 // Helper functions
-const getActionText = (action?: string) => 
+const getActionText = (action?: string) =>
   action === "closed" ? "关闭" : action?.includes("open") ? "打开" : "编辑";
 
-const createLink = (text: string, href?: string) => ({
-  tag: "a",
-  text,
-  href
-});
+const createLink = (href: string, text = href) => ({ tag: "a", href, text });
 
-const createText = (text: string) => ({
-  tag: "text",
-  text
-});
+const createText = (text: string) => ({ tag: "text", text });
 
 // Event handlers
-const handlePushEvent = (event: GitHubAction) => {
-  const { head_commit, ref, ref_name, server_url, repository, actor } = event;
-  return {
-    title: "GitHub 代码提交",
-    content: [
-      [createText("提交链接："), createLink(head_commit?.url, head_commit?.url)],
-      [createText("代码分支："), createLink(ref, `${server_url}/${repository}/tree/${ref_name}`)],
-      [createText("提交作者："), createLink(actor, `${server_url}/${actor}`)],
-      [createText("提交信息："), createText(head_commit?.message)]
-    ]
-  };
-};
+const handlePushEvent = ({
+  head_commit,
+  ref,
+  ref_name,
+  server_url,
+  repository,
+  actor,
+}: GitHubAction) => ({
+  title: "GitHub 代码提交",
+  content: [
+    [createText("提交链接："), createLink(head_commit?.url, head_commit?.url)],
+    [
+      createText("代码分支："),
+      createLink(ref, `${server_url}/${repository}/tree/${ref_name}`),
+    ],
+    [createText("提交作者："), createLink(actor, `${server_url}/${actor}`)],
+    [createText("提交信息："), createText(head_commit?.message)],
+  ],
+});
 
-const handleIssueEvent = (event: GitHubAction, actionText: string) => {
-  const { issue } = event;
-  return {
-    title: `GitHub issue ${actionText}：${issue?.title}`,
-    content: [
-      [createText("链接："), createLink(issue?.html_url, issue?.html_url)],
-      [createText("作者："), createLink(issue?.user?.login, issue?.user?.html_url)],
-      [createText("指派："), issue?.assignee ? createLink(issue.assignee.login, issue.assignee.html_url) : createText("")],
-      [createText(`标签：${issue?.labels?.map(({ name }) => name).join(", ") || ""}`)],
-      [createText(`里程碑：${issue?.milestone?.title || ""}`)],
-      [createText("描述："), createText(issue?.body)]
-    ]
-  };
-};
+const handleIssueEvent = ({ issue }: GitHubAction, actionText: string) => ({
+  title: `GitHub issue ${actionText}：${issue?.title}`,
+  content: [
+    [createText("链接："), createLink(issue?.html_url, issue?.html_url)],
+    [
+      createText("作者："),
+      createLink(issue?.user?.login, issue?.user?.html_url),
+    ],
+    [
+      createText("指派："),
+      issue?.assignee
+        ? createLink(issue.assignee.login, issue.assignee.html_url)
+        : createText(""),
+    ],
+    [
+      createText(
+        `标签：${issue?.labels?.map(({ name }) => name).join(", ") || ""}`
+      ),
+    ],
+    [createText(`里程碑：${issue?.milestone?.title || ""}`)],
+    [createText("描述："), createText(issue?.body)],
+  ],
+});
 
 // ... other event handlers (pull_request, discussion, comment, release) ...
 
@@ -80,16 +89,14 @@ const processEvent = (event: GitHubAction) => {
   }
 };
 
-// Main execution
-const main = async () => {
-  const event = JSON.parse((await stdin()) || "{}") as GitHubAction;
-  const zh_cn = processEvent(event);
+// Main execution：Processing GitHub Events and Outputting Results
+const event = JSON.parse((await stdin()) || "{}") as GitHubAction;
+const zh_cn = processEvent(event);
 
-  if (zh_cn) {
-    console.log(JSON.stringify({ post: { zh_cn } }));
-  } else {
-    console.error(`Unsupported ${event.event_name} event & ${event.action} action`);
-  }
-};
-
-main();
+if (zh_cn) {
+  console.log(JSON.stringify({ post: { zh_cn } }));
+} else {
+  console.error(
+    `Unsupported ${event.event_name} event & ${event.action} action`
+  );
+}
