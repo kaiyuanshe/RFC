@@ -1,5 +1,6 @@
 import { components } from "npm:@octokit/openapi-types";
 import { stdin } from "npm:zx";
+import { exit } from "node:process";
 
 type GitHubSchema = components["schemas"];
 
@@ -28,7 +29,7 @@ const createText = (text: string) => ({ tag: "text", text });
 
 // 新增辅助函数
 const createUserLink = (user?: { login: string; html_url: string }) => 
-  user ? createLink(user.login, user.html_url) : createText("无");
+  user ? createLink(user.html_url, user.login) : createText("无");
 
 const createContentItem = (label: string, value?: string | { tag: string; text: string }) => [
   createText(label),
@@ -40,7 +41,7 @@ type EventHandler = (
   actionText: string
 ) => {
   title: string;
-  content: [any, any][];
+  content: [object, object][];
 };
 
 // Event handlers
@@ -57,7 +58,7 @@ const eventHandlers: Record<string, EventHandler> = {
     content: [
       [
         createText("提交链接："),
-        createLink(head_commit?.url || "", head_commit?.url || ""),
+        createLink(head_commit!.url),
       ],
       [
         createText("代码分支："),
@@ -87,7 +88,7 @@ const eventHandlers: Record<string, EventHandler> = {
         createText(issue?.labels?.map(({ name }) => name).join(", ") || "无"),
       ],
       [createText("里程碑："), createText(issue?.milestone?.title || "无")],
-      [createText("描述："), createText(issue?.body || "无描述")],
+      [createText("描述："), createText(issue?.body || "无")],
     ],
   }),
 
@@ -153,24 +154,17 @@ const eventHandlers: Record<string, EventHandler> = {
 // Main processor
 const processEvent = (event: GitHubAction) => {
   const { event_name, action } = event;
-  if (!event_name) {
-    console.error("Missing event_name in GitHub action");
-    return null;
-  }
-
   const actionText = getActionText(action);
   const handler = eventHandlers[event_name];
 
   if (!handler) {
-    console.error(`No handler found for event: ${event_name}`);
-    return null;
+    throw new Error(`No handler found for event: ${event_name}`);
   }
 
   try {
     return handler(event, actionText);
   } catch (error) {
-    console.error(`Error processing ${event_name} event:`, error);
-    return null;
+    throw new Error(`Error processing ${event_name} event: ${error.message}`);
   }
 };
 
@@ -181,7 +175,7 @@ const zh_cn = processEvent(event);
 if (zh_cn) {
   console.log(JSON.stringify({ post: { zh_cn } }));
 } else {
-  console.error(
+  throw new Error(
     `Unsupported ${event.event_name} event & ${event.action} action`
   );
 }
