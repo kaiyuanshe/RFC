@@ -64,10 +64,10 @@ const eventHandlers: Record<string, EventHandler> = {
       [createText("提交链接："), createLink(head_commit!.url)],
       [
         createText("代码分支："),
-        createLink( `${server_url}/${repository}/tree/${ref_name}`, ref || ""),
+        createLink(`${server_url}/${repository}/tree/${ref_name}`),
       ],
       [createText("提交作者："), createLink(`${server_url}/${actor}`, actor)],
-      [createText("提交信息："), createText(head_commit?.message || "")],
+      [createText("提交信息："), createText(head_commit!.message)],
     ],
   }),
 
@@ -97,10 +97,7 @@ const eventHandlers: Record<string, EventHandler> = {
   pull_request: ({ event: { pull_request } }, actionText) => ({
     title: `GitHub PR ${actionText}：${pull_request?.title}`,
     content: [
-      [
-        createText("链接："),
-        createLink(pull_request?.html_url, pull_request?.html_url),
-      ],
+      [createText("链接："), createLink(pull_request!.html_url)],
       [
         createText("作者："),
         createLink(pull_request?.user.html_url, pull_request?.user.login),
@@ -128,20 +125,18 @@ const eventHandlers: Record<string, EventHandler> = {
     ],
   }),
 
-  comment: ({ event: { comment, issue, discussion } }, actionText) => {
-    const title = issue?.title || discussion?.title || "未知帖子";
-    return {
-      title: `GitHub 帖子评论：${title}`,
-      content: [
-        createContentItem("链接：", comment?.html_url),
-        createContentItem(
-          "作者：",
-          comment?.user ? createUserLink(comment.user) : createText("无")
-        ) as [any, any],
-        createContentItem("描述：", comment?.body || "无描述"),
-      ],
-    };
-  },
+  comment: ({ event: { comment, issue, discussion } }, actionText) => ({
+    title: issue?.title || discussion?.title || "未知帖子",
+
+    content: [
+      createContentItem("链接：", comment?.html_url),
+      createContentItem(
+        "作者：",
+        comment?.user ? createUserLink(comment.user) : createText("无")
+      ) as [any, any],
+      createContentItem("描述：", comment?.body || "无描述"),
+    ],
+  }),
 
   release: ({ event: { release } }) => ({
     title: `GitHub Release 发布：${release!.name || release!.tag_name}`,
