@@ -64,7 +64,7 @@ const eventHandlers: Record<string, EventHandler> = {
       [createText("提交链接："), createLink(head_commit!.url)],
       [
         createText("代码分支："),
-        createLink(`${server_url}/${repository}/tree/${ref_name}`),
+        createLink(`${server_url}/${repository}/tree/${ref_name}`, ref),
       ],
       [createText("提交作者："), createLink(`${server_url}/${actor}`, actor)],
       [createText("提交信息："), createText(head_commit!.message)],
@@ -126,8 +126,9 @@ const eventHandlers: Record<string, EventHandler> = {
   }),
 
   comment: ({ event: { comment, issue, discussion } }, actionText) => ({
-    title: issue?.title || discussion?.title || "未知帖子",
-
+    title: `GitHub 帖子评论：${
+      issue?.title || discussion?.title || "未知帖子"
+    }`,
     content: [
       createContentItem("链接：", comment?.html_url),
       createContentItem(
