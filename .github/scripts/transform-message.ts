@@ -66,7 +66,7 @@ const eventHandlers: Record<string, EventHandler> = {
         createText("代码分支："),
         createLink(ref || "", `${server_url}/${repository}/tree/${ref_name}`),
       ],
-      [createText("提交作者："), createLink(actor, `${server_url}/${actor}`)],
+      [createText("提交作者："), createLink(`${server_url}/${actor}`, actor)],
       [createText("提交信息："), createText(head_commit?.message || "")],
     ],
   }),
@@ -77,12 +77,12 @@ const eventHandlers: Record<string, EventHandler> = {
       [createText("链接："), createLink(issue!.html_url)],
       [
         createText("作者："),
-        createLink(issue?.user?.login, issue?.user?.html_url),
+        createLink(issue?.user?.html_url, issue?.user?.login),
       ],
       [
         createText("指派："),
         issue?.assignee
-          ? createLink(issue.assignee.login, issue.assignee.html_url)
+          ? createLink(issue.assignee.html_url, issue.assignee.login)
           : createText("无"),
       ],
       [
@@ -103,14 +103,14 @@ const eventHandlers: Record<string, EventHandler> = {
       ],
       [
         createText("作者："),
-        createLink(pull_request?.user.login, pull_request?.user.html_url),
+        createLink(pull_request?.user.html_url, pull_request?.user.login),
       ],
       [
         createText("指派："),
         pull_request?.assignee
           ? createLink(
-              pull_request.assignee.login,
-              pull_request.assignee.html_url
+              pull_request.assignee.html_url,
+              pull_request.assignee.login
             )
           : createText("无"),
       ],
@@ -169,7 +169,9 @@ const processEvent = (event: GitHubAction) => {
   try {
     return handler(event, actionText);
   } catch (cause) {
-    throw new Error(`Error processing ${event_name} event: ${cause.message}`, {cause});
+    throw new Error(`Error processing ${event_name} event: ${cause.message}`, {
+      cause,
+    });
   }
 };
 
