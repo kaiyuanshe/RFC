@@ -64,7 +64,7 @@ const eventHandlers: Record<string, EventHandler> = {
       [createText("提交链接："), createLink(head_commit!.url)],
       [
         createText("代码分支："),
-        createLink(ref || "", `${server_url}/${repository}/tree/${ref_name}`),
+        createLink( `${server_url}/${repository}/tree/${ref_name}`, ref || ""),
       ],
       [createText("提交作者："), createLink(`${server_url}/${actor}`, actor)],
       [createText("提交信息："), createText(head_commit?.message || "")],
