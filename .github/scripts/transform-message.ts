@@ -1,6 +1,5 @@
 import { components } from "npm:@octokit/openapi-types";
 import { stdin } from "npm:zx";
-import { exit } from "node:process";
 
 type GitHubSchema = components["schemas"];
 
@@ -28,13 +27,19 @@ const createLink = (href: string, text = href) => ({ tag: "a", href, text });
 const createText = (text: string) => ({ tag: "text", text });
 
 // 新增辅助函数
-const createUserLink = (user?: { login: string; html_url: string }) => 
+const createUserLink = (user?: { login: string; html_url: string }) =>
   user ? createLink(user.html_url, user.login) : createText("无");
 
-const createContentItem = (label: string, value?: string | { tag: string; text: string }) => [
-  createText(label),
-  typeof value === 'string' ? createText(value || "无") : value || createText("无")
-];
+const createContentItem = (
+  label: string,
+  value?: string | { tag: string; text: string }
+) =>
+  [
+    createText(label),
+    typeof value === "string"
+      ? createText(value || "无")
+      : value || createText("无"),
+  ] as [object, object];
 
 type EventHandler = (
   event: GitHubAction,
@@ -56,10 +61,7 @@ const eventHandlers: Record<string, EventHandler> = {
   }) => ({
     title: "GitHub 代码提交",
     content: [
-      [
-        createText("提交链接："),
-        createLink(head_commit!.url),
-      ],
+      [createText("提交链接："), createLink(head_commit!.url)],
       [
         createText("代码分支："),
         createLink(ref || "", `${server_url}/${repository}/tree/${ref_name}`),
@@ -72,7 +74,7 @@ const eventHandlers: Record<string, EventHandler> = {
   issues: ({ event: { issue } }, actionText) => ({
     title: `GitHub issue ${actionText}：${issue?.title}`,
     content: [
-      [createText("链接："), createLink(issue?.html_url, issue?.html_url)],
+      [createText("链接："), createLink(issue!.html_url)],
       [
         createText("作者："),
         createLink(issue?.user?.login, issue?.user?.html_url),
@@ -131,24 +133,27 @@ const eventHandlers: Record<string, EventHandler> = {
     return {
       title: `GitHub 帖子评论：${title}`,
       content: [
-        createContentItem("链接：", comment?.html_url) as [any, any],
-        createContentItem("作者：", comment?.user ? createUserLink(comment.user) : createText("无")) as [any, any],
-        createContentItem("描述：", comment?.body || "无描述") as [any, any]
+        createContentItem("链接：", comment?.html_url),
+        createContentItem(
+          "作者：",
+          comment?.user ? createUserLink(comment.user) : createText("无")
+        ) as [any, any],
+        createContentItem("描述：", comment?.body || "无描述"),
       ],
     };
   },
 
-  release: ({ event: { release } }, actionText) => {
-    const title = release?.name || release?.tag_name || "未知版本";
-    return {
-      title: `GitHub Release 发布：${title}`,
-      content: [
-        createContentItem("链接：", release?.html_url) as [any, any],
-        createContentItem("作者：", release?.author ? createUserLink(release.author) : createText("无")) as [any, any],
-        createContentItem("描述：", release?.body || "无描述") as [any, any]
-      ],
-    };
-  },
+  release: ({ event: { release } }) => ({
+    title: `GitHub Release 发布：${release!.name || release!.tag_name}`,
+    content: [
+      createContentItem("链接：", release!.html_url),
+      createContentItem(
+        "作者：",
+        release!.author && createUserLink(release.author)
+      ),
+      createContentItem("描述：", release!.body),
+    ],
+  }),
 };
 
 // Main processor
@@ -163,8 +168,8 @@ const processEvent = (event: GitHubAction) => {
 
   try {
     return handler(event, actionText);
-  } catch (error) {
-    throw new Error(`Error processing ${event_name} event: ${error.message}`);
+  } catch (cause) {
+    throw new Error(`Error processing ${event_name} event: ${cause.message}`, {cause});
   }
 };
 
