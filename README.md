@@ -17,7 +17,7 @@
   - [提交](https://github.com/kaiyuanshe/RFC/issues/new/choose)🚀
 - Project 计划
   - [历年工作](https://github.com/kaiyuanshe/RFC/projects)
-  - [本年进度](https://github.com/kaiyuanshe/RFC/projects/1?fullscreen=true)🔥
+  - [本年进度](https://github.com/orgs/kaiyuanshe/projects/15)🔥
 - 3️⃣ Pull request 决议
   - [存档](https://github.com/kaiyuanshe/RFC/pulls)
   - [撰写](https://github.com/kaiyuanshe/RFC/new/main)📝
